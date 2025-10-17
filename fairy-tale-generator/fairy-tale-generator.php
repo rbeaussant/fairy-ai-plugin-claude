@@ -8,8 +8,24 @@
 
  if (!defined('ABSPATH')) exit; // Sécurité
 
-// Configuration OpenAI via la constante ou option WordPress
-define('OPENAI_API_KEY', get_option('openai_api_key'));
+// Configuration OpenAI avec gestion de priorité des clés
+function get_active_openai_key() {
+    // Priorité 1 : Clé depuis les réglages admin (nouvelle méthode)
+    $admin_key = get_option('fairy_tale_openai_key', '');
+    if (!empty($admin_key) && strlen($admin_key) > 20) {
+        return $admin_key;
+    }
+
+    // Priorité 2 : Clé depuis l'ancienne méthode (base de données)
+    $legacy_key = get_option('openai_api_key', '');
+    if (!empty($legacy_key) && strlen($legacy_key) > 20) {
+        return $legacy_key;
+    }
+
+    return '';
+}
+
+define('OPENAI_API_KEY', get_active_openai_key());
 
 // Initialisation du plugin
 function fairy_tale_init() {
@@ -922,3 +938,282 @@ function publish_fairy_tale() {
     }
 }
 add_action('wp_ajax_publish_fairy_tale', 'publish_fairy_tale');
+
+// === RÉGLAGES ADMIN POUR LA CLÉ OPENAI ===
+
+// Ajouter le menu de réglages
+function fairy_tale_settings_menu() {
+    add_submenu_page(
+        'fairy-tale-management',
+        'Réglages OpenAI',
+        'Réglages',
+        'manage_options',
+        'fairy-tale-settings',
+        'fairy_tale_settings_page'
+    );
+}
+add_action('admin_menu', 'fairy_tale_settings_menu');
+
+// Page de réglages
+function fairy_tale_settings_page() {
+    // Vérifier les permissions
+    if (!current_user_can('manage_options')) {
+        wp_die('Vous n\'avez pas les permissions nécessaires.');
+    }
+
+    // Traiter la sauvegarde
+    if (isset($_POST['fairy_tale_save_settings']) && check_admin_referer('fairy_tale_settings_nonce')) {
+        $api_key = sanitize_text_field($_POST['openai_api_key']);
+        update_option('fairy_tale_openai_key', $api_key);
+        echo '<div class="notice notice-success"><p>✅ Clé API enregistrée avec succès. Cette clé sera maintenant utilisée en priorité.</p></div>';
+    }
+
+    // Récupérer les clés
+    $admin_key = get_option('fairy_tale_openai_key', '');
+    $legacy_key = get_option('openai_api_key', '');
+    $active_key = get_active_openai_key();
+
+    // Masquer les clés pour l'affichage
+    $masked_admin_key = !empty($admin_key) ? substr($admin_key, 0, 7) . '...' . substr($admin_key, -4) : '';
+    $masked_legacy_key = !empty($legacy_key) ? substr($legacy_key, 0, 7) . '...' . substr($legacy_key, -4) : '';
+
+    // Déterminer quelle clé est active
+    $using_admin_key = !empty($admin_key) && $active_key === $admin_key;
+    $using_legacy_key = !empty($legacy_key) && $active_key === $legacy_key;
+    ?>
+    <div class="wrap">
+        <h1>⚙️ Réglages du Générateur de Contes</h1>
+
+        <?php if (!empty($legacy_key) && empty($admin_key)): ?>
+        <div class="notice notice-info">
+            <p><strong>ℹ️ Ancienne configuration détectée</strong></p>
+            <p>Une clé API existe dans votre base de données (<?php echo esc_html($masked_legacy_key); ?>).
+            Vous pouvez maintenant gérer votre clé via cette interface. Si vous entrez une nouvelle clé ci-dessous, elle sera utilisée en priorité.</p>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($active_key)): ?>
+        <div class="notice notice-success" style="border-left-color: #46b450;">
+            <p><strong>✅ Clé API active :</strong>
+            <?php if ($using_admin_key): ?>
+                <?php echo esc_html($masked_admin_key); ?>
+                <span style="color: #46b450;">(Configuration admin - prioritaire)</span>
+            <?php elseif ($using_legacy_key): ?>
+                <?php echo esc_html($masked_legacy_key); ?>
+                <span style="color: #f0b849;">(Ancienne configuration)</span>
+            <?php endif; ?>
+            </p>
+        </div>
+        <?php else: ?>
+        <div class="notice notice-warning">
+            <p><strong>⚠️ Aucune clé API configurée</strong></p>
+            <p>Le plugin ne pourra pas générer de contes tant qu'une clé OpenAI valide n'est pas configurée.</p>
+        </div>
+        <?php endif; ?>
+
+        <div class="card" style="max-width: 800px; margin-top: 20px;">
+            <h2>Configuration de la clé API OpenAI</h2>
+
+            <form method="post" action="">
+                <?php wp_nonce_field('fairy_tale_settings_nonce'); ?>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="openai_api_key">Clé API OpenAI</label>
+                        </th>
+                        <td>
+                            <input type="password"
+                                   id="openai_api_key"
+                                   name="openai_api_key"
+                                   value="<?php echo esc_attr($admin_key); ?>"
+                                   class="regular-text"
+                                   placeholder="sk-...">
+                            <button type="button"
+                                    id="toggle_api_key"
+                                    class="button button-small"
+                                    style="margin-left: 10px;">
+                                👁️ Afficher
+                            </button>
+                            <p class="description">
+                                Votre clé API OpenAI. Format : sk-...
+                                <?php if (!empty($masked_admin_key)): ?>
+                                    <br><strong>Clé dans les réglages :</strong> <?php echo esc_html($masked_admin_key); ?> ✅
+                                <?php endif; ?>
+                                <?php if (!empty($legacy_key) && !empty($admin_key)): ?>
+                                    <br><span style="color: #999;"><strong>Ancienne clé détectée :</strong> <?php echo esc_html($masked_legacy_key); ?> (remplacée)</span>
+                                <?php elseif (!empty($legacy_key)): ?>
+                                    <br><span style="color: #f0b849;"><strong>Clé actuelle (méthode ancienne) :</strong> <?php echo esc_html($masked_legacy_key); ?></span>
+                                <?php endif; ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <p class="submit">
+                    <button type="submit" name="fairy_tale_save_settings" class="button button-primary">
+                        💾 Enregistrer la clé
+                    </button>
+                    <button type="button" id="test_api_key" class="button button-secondary" style="margin-left: 10px;">
+                        🧪 Tester la clé
+                    </button>
+                </p>
+            </form>
+
+            <div id="api_test_result" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="card" style="max-width: 800px; margin-top: 20px;">
+            <h2>ℹ️ Comment obtenir votre clé API ?</h2>
+            <ol>
+                <li>Créez un compte sur <a href="https://platform.openai.com/" target="_blank">platform.openai.com</a></li>
+                <li>Allez dans <strong>API Keys</strong></li>
+                <li>Cliquez sur <strong>Create new secret key</strong></li>
+                <li>Copiez la clé (elle commence par <code>sk-</code>)</li>
+                <li>Collez-la ci-dessus et enregistrez</li>
+            </ol>
+            <p><strong>⚠️ Important :</strong> Cette clé permet d'accéder à votre compte OpenAI. Ne la partagez jamais publiquement.</p>
+        </div>
+    </div>
+
+    <style>
+        .api-status {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .api-status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .api-status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .api-status.testing {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+    </style>
+
+    <script>
+    jQuery(document).ready(function($) {
+        // Toggle password visibility
+        $('#toggle_api_key').on('click', function() {
+            var input = $('#openai_api_key');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                $(this).text('🙈 Masquer');
+            } else {
+                input.attr('type', 'password');
+                $(this).text('👁️ Afficher');
+            }
+        });
+
+        // Test API key
+        $('#test_api_key').on('click', function() {
+            var apiKey = $('#openai_api_key').val();
+            var resultDiv = $('#api_test_result');
+
+            if (!apiKey || apiKey.trim() === '') {
+                resultDiv.html('<div class="api-status error">❌ Veuillez entrer une clé API.</div>');
+                return;
+            }
+
+            if (!apiKey.startsWith('sk-')) {
+                resultDiv.html('<div class="api-status error">❌ Format de clé invalide. La clé doit commencer par "sk-"</div>');
+                return;
+            }
+
+            resultDiv.html('<div class="api-status testing">⏳ Test en cours... Cela peut prendre quelques secondes.</div>');
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'test_openai_key',
+                    api_key: apiKey,
+                    nonce: '<?php echo wp_create_nonce('test_openai_key'); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        resultDiv.html('<div class="api-status success">✅ ' + response.data.message + '</div>');
+                    } else {
+                        resultDiv.html('<div class="api-status error">❌ ' + response.data.message + '</div>');
+                    }
+                },
+                error: function() {
+                    resultDiv.html('<div class="api-status error">❌ Erreur de communication avec le serveur.</div>');
+                }
+            });
+        });
+    });
+    </script>
+    <?php
+}
+
+// AJAX pour tester la clé API
+function test_openai_api_key() {
+    check_ajax_referer('test_openai_key', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => 'Permission refusée']);
+    }
+
+    $api_key = sanitize_text_field($_POST['api_key']);
+
+    if (empty($api_key)) {
+        wp_send_json_error(['message' => 'Clé API manquante']);
+    }
+
+    // Test avec un prompt minimal
+    $response = wp_remote_post('https://api.openai.com/v1/chat/completions', array(
+        'method' => 'POST',
+        'headers' => array(
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type' => 'application/json',
+        ),
+        'body' => json_encode(array(
+            'model' => 'gpt-4o',
+            'messages' => [
+                ['role' => 'user', 'content' => 'Réponds juste "OK" si tu me reçois.']
+            ],
+            'max_tokens' => 10,
+        )),
+        'timeout' => 30,
+    ));
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(['message' => 'Erreur de connexion : ' . $response->get_error_message()]);
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    // Vérifier les erreurs de l'API
+    if (isset($data['error'])) {
+        $error_msg = $data['error']['message'] ?? 'Erreur inconnue';
+        $error_type = $data['error']['type'] ?? '';
+
+        if ($error_type === 'invalid_request_error' && strpos($error_msg, 'api_key') !== false) {
+            wp_send_json_error(['message' => 'Clé API invalide. Vérifiez que vous avez copié la clé complète.']);
+        } else {
+            wp_send_json_error(['message' => 'Erreur OpenAI : ' . $error_msg]);
+        }
+    }
+
+    // Vérifier que la réponse est valide
+    if (isset($data['choices'][0]['message']['content'])) {
+        $model = $data['model'] ?? 'gpt-4o';
+        wp_send_json_success([
+            'message' => 'Clé API valide ! Modèle testé : ' . $model,
+            'response' => $data['choices'][0]['message']['content']
+        ]);
+    } else {
+        wp_send_json_error(['message' => 'Réponse inattendue de l\'API OpenAI']);
+    }
+}
+add_action('wp_ajax_test_openai_key', 'test_openai_api_key');

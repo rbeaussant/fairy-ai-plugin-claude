@@ -1,0 +1,40 @@
+# Fichiers d'environnement (contient des mots de passe)
+.env
+
+# Données Docker
+db_data/
+wordpress_data/
+
+# Uploads WordPress (contenu généré par les utilisateurs)
+uploads/
+
+# Thèmes personnalisés (décommenter si vous voulez versionner les thèmes)
+# themes/
+
+# Fichiers de log
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# IDE/Éditeurs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Fichiers temporaires
+*.tmp
+*.temp
+.cache/
+
+# Node modules (si vous ajoutez des outils Node.js)
+node_modules/

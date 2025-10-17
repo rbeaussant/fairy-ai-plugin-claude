@@ -1,0 +1,179 @@
+/* Style du formulaire */
+.fairy-tale-generator {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.fairy-tale-generator a {
+	color: #fff;
+	font-weight: bold;
+}
+
+form#fairy-tale-form .form-group {
+    display: inline-block;
+    width: 49%;
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 1rem;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background: #357abd;
+}
+
+/* Style de la grille des contes */
+.tales-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.tale-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.tale-card:hover {
+    transform: translateY(-5px);
+}
+
+.tale-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.tale-card h3 {
+    padding: 1rem;
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.tale-card .status {
+    padding: 0 1rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.tale-card .read-tale {
+    display: block;
+    padding: 1rem;
+    text-align: center;
+    background: #f5f5f5;
+    color: #333;
+    text-decoration: none;
+    border-top: 1px solid #eee;
+}
+
+.tale-card .read-tale:hover {
+    background: #eee;
+}
+
+/* Style de la page d'administration */
+.fairy-tale-management {
+    padding: 2rem;
+}
+
+.fairy-tale-management table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.fairy-tale-management th,
+.fairy-tale-management td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.fairy-tale-management th {
+    background: #f5f5f5;
+    font-weight: bold;
+}
+
+/* Loader et messages */
+.tale-loader {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+}
+
+.tale-loader::after {
+    content: "";
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #4a90e2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.tale-message {
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+}
+
+.tale-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.tale-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Style responsive */
+@media (max-width: 768px) {
+    .tales-grid {
+        grid-template-columns: 1fr;
+    }
+    
+.fairy-tale-generator {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+}

@@ -43,6 +43,211 @@ function fairy_tale_init() {
 }
 add_action('init', 'fairy_tale_init');
 
+// === ENREGISTREMENT DU CUSTOM POST TYPE ET DES TAXONOMIES ===
+
+// Enregistrer le Custom Post Type "conte-ai"
+function fairy_tale_register_cpt() {
+    // Vérifier si le CPT n'est pas déjà enregistré
+    if (post_type_exists('conte-ai')) {
+        return;
+    }
+
+    $labels = array(
+        'name'                  => 'Contes IA',
+        'singular_name'         => 'Conte IA',
+        'menu_name'             => 'Contes IA',
+        'name_admin_bar'        => 'Conte IA',
+        'add_new'               => 'Ajouter',
+        'add_new_item'          => 'Ajouter un nouveau conte',
+        'new_item'              => 'Nouveau conte',
+        'edit_item'             => 'Modifier le conte',
+        'view_item'             => 'Voir le conte',
+        'all_items'             => 'Tous les contes',
+        'search_items'          => 'Rechercher des contes',
+        'parent_item_colon'     => 'Contes parents :',
+        'not_found'             => 'Aucun conte trouvé.',
+        'not_found_in_trash'    => 'Aucun conte trouvé dans la corbeille.'
+    );
+
+    $args = array(
+        'labels'                => $labels,
+        'description'           => 'Contes générés par IA',
+        'public'                => true,
+        'publicly_queryable'    => true,
+        'show_ui'               => true,
+        'show_in_menu'          => true,
+        'query_var'             => true,
+        'rewrite'               => array('slug' => 'conte'),
+        'capability_type'       => 'post',
+        'has_archive'           => true,
+        'hierarchical'          => false,
+        'menu_position'         => 5,
+        'menu_icon'             => 'dashicons-book',
+        'supports'              => array('title', 'editor', 'author', 'thumbnail', 'excerpt', 'comments'),
+        'show_in_rest'          => true,
+    );
+
+    register_post_type('conte-ai', $args);
+}
+add_action('init', 'fairy_tale_register_cpt');
+
+// Enregistrer les taxonomies
+function fairy_tale_register_taxonomies() {
+
+    // Taxonomie : Âge
+    if (!taxonomy_exists('age')) {
+        register_taxonomy('age', 'conte-ai', array(
+            'labels' => array(
+                'name'              => 'Âges',
+                'singular_name'     => 'Âge',
+                'search_items'      => 'Rechercher des âges',
+                'all_items'         => 'Tous les âges',
+                'edit_item'         => 'Modifier l\'âge',
+                'update_item'       => 'Mettre à jour l\'âge',
+                'add_new_item'      => 'Ajouter un nouvel âge',
+                'new_item_name'     => 'Nouveau nom d\'âge',
+                'menu_name'         => 'Âges',
+            ),
+            'hierarchical'      => true,
+            'show_ui'           => true,
+            'show_admin_column' => true,
+            'query_var'         => true,
+            'rewrite'           => array('slug' => 'age'),
+            'show_in_rest'      => true,
+        ));
+    }
+
+    // Taxonomie : Durée
+    if (!taxonomy_exists('duree')) {
+        register_taxonomy('duree', 'conte-ai', array(
+            'labels' => array(
+                'name'              => 'Durées',
+                'singular_name'     => 'Durée',
+                'search_items'      => 'Rechercher des durées',
+                'all_items'         => 'Toutes les durées',
+                'edit_item'         => 'Modifier la durée',
+                'update_item'       => 'Mettre à jour la durée',
+                'add_new_item'      => 'Ajouter une nouvelle durée',
+                'new_item_name'     => 'Nouveau nom de durée',
+                'menu_name'         => 'Durées',
+            ),
+            'hierarchical'      => true,
+            'show_ui'           => true,
+            'show_admin_column' => true,
+            'query_var'         => true,
+            'rewrite'           => array('slug' => 'duree'),
+            'show_in_rest'      => true,
+        ));
+    }
+
+    // Taxonomie : Personnage
+    if (!taxonomy_exists('personnage')) {
+        register_taxonomy('personnage', 'conte-ai', array(
+            'labels' => array(
+                'name'              => 'Personnages',
+                'singular_name'     => 'Personnage',
+                'search_items'      => 'Rechercher des personnages',
+                'all_items'         => 'Tous les personnages',
+                'edit_item'         => 'Modifier le personnage',
+                'update_item'       => 'Mettre à jour le personnage',
+                'add_new_item'      => 'Ajouter un nouveau personnage',
+                'new_item_name'     => 'Nouveau nom de personnage',
+                'menu_name'         => 'Personnages',
+            ),
+            'hierarchical'      => true,
+            'show_ui'           => true,
+            'show_admin_column' => true,
+            'query_var'         => true,
+            'rewrite'           => array('slug' => 'personnage'),
+            'show_in_rest'      => true,
+        ));
+    }
+
+    // Taxonomie : Lieu
+    if (!taxonomy_exists('lieu')) {
+        register_taxonomy('lieu', 'conte-ai', array(
+            'labels' => array(
+                'name'              => 'Lieux',
+                'singular_name'     => 'Lieu',
+                'search_items'      => 'Rechercher des lieux',
+                'all_items'         => 'Tous les lieux',
+                'edit_item'         => 'Modifier le lieu',
+                'update_item'       => 'Mettre à jour le lieu',
+                'add_new_item'      => 'Ajouter un nouveau lieu',
+                'new_item_name'     => 'Nouveau nom de lieu',
+                'menu_name'         => 'Lieux',
+            ),
+            'hierarchical'      => true,
+            'show_ui'           => true,
+            'show_admin_column' => true,
+            'query_var'         => true,
+            'rewrite'           => array('slug' => 'lieu'),
+            'show_in_rest'      => true,
+        ));
+    }
+
+    // Taxonomie : Thématique
+    if (!taxonomy_exists('thematique')) {
+        register_taxonomy('thematique', 'conte-ai', array(
+            'labels' => array(
+                'name'              => 'Thématiques',
+                'singular_name'     => 'Thématique',
+                'search_items'      => 'Rechercher des thématiques',
+                'all_items'         => 'Toutes les thématiques',
+                'edit_item'         => 'Modifier la thématique',
+                'update_item'       => 'Mettre à jour la thématique',
+                'add_new_item'      => 'Ajouter une nouvelle thématique',
+                'new_item_name'     => 'Nouveau nom de thématique',
+                'menu_name'         => 'Thématiques',
+            ),
+            'hierarchical'      => true,
+            'show_ui'           => true,
+            'show_admin_column' => true,
+            'query_var'         => true,
+            'rewrite'           => array('slug' => 'thematique'),
+            'show_in_rest'      => true,
+        ));
+    }
+
+    // Taxonomie : Objet
+    if (!taxonomy_exists('objet')) {
+        register_taxonomy('objet', 'conte-ai', array(
+            'labels' => array(
+                'name'              => 'Objets',
+                'singular_name'     => 'Objet',
+                'search_items'      => 'Rechercher des objets',
+                'all_items'         => 'Tous les objets',
+                'edit_item'         => 'Modifier l\'objet',
+                'update_item'       => 'Mettre à jour l\'objet',
+                'add_new_item'      => 'Ajouter un nouvel objet',
+                'new_item_name'     => 'Nouveau nom d\'objet',
+                'menu_name'         => 'Objets',
+            ),
+            'hierarchical'      => true,
+            'show_ui'           => true,
+            'show_admin_column' => true,
+            'query_var'         => true,
+            'rewrite'           => array('slug' => 'objet'),
+            'show_in_rest'      => true,
+        ));
+    }
+}
+add_action('init', 'fairy_tale_register_taxonomies');
+
+// Forcer le flush des rewrite rules à l'activation du plugin
+function fairy_tale_activation() {
+    fairy_tale_register_cpt();
+    fairy_tale_register_taxonomies();
+    flush_rewrite_rules();
+}
+register_activation_hook(__FILE__, 'fairy_tale_activation');
+
+// Nettoyer les rewrite rules à la désactivation
+function fairy_tale_deactivation() {
+    flush_rewrite_rules();
+}
+register_deactivation_hook(__FILE__, 'fairy_tale_deactivation');
+
 // Ajout des scripts et styles
 function fairy_tale_enqueue_scripts() {
     wp_enqueue_style('fairy-tale-style', plugins_url('css/style.css', __FILE__));

@@ -65,6 +65,42 @@ docker-compose up -d
 docker exec -it contesdefees_wordpress bash
 ```
 
+### Git Commands
+
+The repository is configured with Git version control:
+
+```bash
+# Check status
+git status
+
+# Stage changes
+git add .
+
+# Commit changes
+git commit -m "Description of changes"
+
+# Push to GitHub
+git push
+
+# Pull latest changes
+git pull
+
+# View commit history
+git log --oneline
+
+# View remote repository
+git remote -v
+```
+
+**Repository:** https://github.com/rbeaussant/fairy-ai-plugin-claude.git
+
+**Protected files (in `.gitignore`):**
+- `.env` - Contains sensitive passwords
+- `uploads/` - User-generated content
+- `db_data/` - Database volume
+- `wordpress_data/` - WordPress volume
+- IDE/editor config files
+
 ## Architecture Overview
 
 ### Docker Services Architecture
